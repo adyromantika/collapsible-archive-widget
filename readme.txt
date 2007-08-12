@@ -1,4 +1,4 @@
-=== Random Posts Widget ===
+=== Collapsible Archive Widget ===
 Contributors: adywarna
 Donate link: http://www.romantika.name/v2/
 Tags: collapse, collapsible, archive, collapsible archive, widget
