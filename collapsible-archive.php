@@ -21,7 +21,7 @@ Plugin Name: Collapsible Archive Widget
 Plugin URI: http://www.romantika.name/v2/2007/08/10/wordpress-plugin-collapsible-archive-widget/
 Description: Display Collapsible Archive Widget.
 Author: Ady Romantika
-Version: 1.0.0
+Version: 2.0.0
 Author URI: http://www.romantika.name/v2/
 */
 
@@ -32,12 +32,56 @@ function ara_collapsiblearchive($before,$after)
 	$title = $options['title'];
 	$list_type = $options['type'] ? $options['type'] : 'ul';
 	$count = $options['count'] ? 1 : 0;
+	$abbr = $options['abbr'] ? 1 : 0;
+	$scriptaculous = $options['scriptaculous'] ? 1 : 0;
+	$effectexpand = $options['effectexpand'] ? $options['effectexpand'] : 1;
+	$effectcollapse = $options['effectcollapse'] ? $options['effectcollapse'] : 1;
 
 	# years
 	$years	= ara_get_archivesbyyear();
 
 	# Header
 	$string_to_echo  =  ($before.$title.$after."\n");
+
+	if($scriptaculous > 0) # Only do this if scriptaculous is selected
+	{
+		switch($effectexpand)
+		{
+			case 1: $effxp = 'Appear'; break;
+			case 2: $effxp = 'BlindDown'; break;
+			case 3: $effxp = 'SlideDown'; break;
+			case 4: $effxp = 'Grow'; break;
+		}
+
+		switch($effectcollapse)
+		{
+			case 1: $effcl = 'Fade'; break;
+			case 2: $effcl = 'Puff'; break;
+			case 3: $effcl = 'BlindUp'; break;
+			case 4: $effcl = 'SwitchOff'; break;
+			case 5: $effcl = 'SlideUp'; break;
+			case 6: $effcl = 'DropOut'; break;
+			case 7: $effcl = 'Squish'; break;
+			case 8: $effcl = 'Fold'; break;
+			case 9: $effcl = 'Shrink'; break;
+		}
+
+		?>
+			<script src="<?php echo get_settings('home'); ?>/wp-includes/js/scriptaculous/prototype.js" type="text/javascript"></script>
+			<script src="<?php echo get_settings('home'); ?>/wp-includes/js/scriptaculous/scriptaculous.js" type="text/javascript"></script>
+			<script language="javaSscript" type="text/javascript">
+				collapsiblearchive_toggle = function(idyear,visible)
+				{
+					(visible == false ?
+						new Effect.<?php echo $effxp ?>(document.getElementById('ara_ca' + idyear)) :
+						new Effect.<?php echo $effcl ?>(document.getElementById('ara_ca' + idyear))
+						);
+					visible = (visible == false ? true : false);
+					return visible;
+				}
+			</script>
+		<?php
+	}
 
 	switch($list_type)
 	{
@@ -76,10 +120,18 @@ function ara_collapsiblearchive($before,$after)
 	for ($x=0;$x<count($years);$x++ )
 	{
 		if (strlen($parentOpen) > 0 ) $string_to_echo .= $parentOpen;
-		$string_to_echo .= '<a style="cursor:pointer;" onClick="var listobject = document.getElementById(\'ara_ca'.$years[$x]->year.'\'); if(listobject.style.display == \'block\') listobject.style.display = \'none\'; else listobject.style.display = \'block\';">'.$years[$x]->year.'</a>';
+		if($scriptaculous > 0)
+		{
+			?><script language="JavaScript" type="text/javascript">var visible_<?php echo $years[$x]->year ?> = false;</script><?php
+			$string_to_echo .= '<a style="cursor:pointer;" onClick="visible_'.$years[$x]->year.' = collapsiblearchive_toggle(\''.$years[$x]->year.'\',visible_'.$years[$x]->year.')">'.$years[$x]->year.'</a>';
+		}
+		else
+		{
+			$string_to_echo .= '<a style="cursor:pointer;" onClick="var listobject = document.getElementById(\'ara_ca'.$years[$x]->year.'\'); if(listobject.style.display == \'block\') listobject.style.display = \'none\'; else listobject.style.display = \'block\';">'.$years[$x]->year.'</a>';
+		}
 		if($count > 0) $string_to_echo .= '&nbsp;('.$years[$x]->posts.')';
 		$string_to_echo .= $childOpen.' id="ara_ca'.$years[$x]->year.'" style="display:none">';
-		$string_to_echo .= ara_get_archivesbymonth($years[$x]->year,$count,$lineStart.$preappend,$lineEnd);
+		$string_to_echo .= ara_get_archivesbymonth($years[$x]->year,$count,$lineStart.$preappend,$lineEnd,$abbr);
 		$string_to_echo .= $childClose;
 		if (strlen($parentClose) > 0) $string_to_echo .= $parentClose;
 	}
@@ -87,7 +139,7 @@ function ara_collapsiblearchive($before,$after)
 	return $string_to_echo;
 }
 
-function ara_get_archivesbymonth($year, $count, $before, $after)
+function ara_get_archivesbymonth($year, $count, $before, $after, $abbr)
 {
 	global $wpdb, $wp_locale;
 
@@ -103,7 +155,7 @@ function ara_get_archivesbymonth($year, $count, $before, $after)
 	foreach ($monthresults as $month)
 	{
 		$url	= get_month_link($year,	$month->month);
-		$text = sprintf(__('%1$s %2$d'), $wp_locale->get_month_abbrev($wp_locale->get_month($month->month)), $year);
+		$text = sprintf(__('%1$s %2$d'), ($abbr > 0 ? $wp_locale->get_month_abbrev($wp_locale->get_month($month->month)) : $wp_locale->get_month($month->month)), $year);
 		if ($count > 0)	$aftertext = '&nbsp;('.$month->posts.')' . $after;
 		else $aftertext = $after;
 		$result_string .= get_archives_link($url, $text, 'custom', $before, $aftertext);
@@ -130,13 +182,18 @@ function widget_ara_collapsiblearchive_control() {
 		$newoptions['title'] = strip_tags(stripslashes($_POST['collapsiblearchive-title']));
 		$newoptions['type'] = $_POST['collapsiblearchive-type'];
 		$newoptions['count'] = isset($_POST['collapsiblearchive-count']);
+		$newoptions['abbr'] = isset($_POST['collapsiblearchive-monthabbr']);
+		$newoptions['scriptaculous'] = isset($_POST['collapsiblearchive-scriptaculous']);
+		$newoptions['effectexpand'] = $_POST['collapsiblearchive-effectexpand'];
+		$newoptions['effectcollapse'] = $_POST['collapsiblearchive-effectcollapse'];
 	}
 	if ( $options != $newoptions ) {
 		$options = $newoptions;
 		update_option('widget_ara_collapsiblearchive', $options);
 	}
-	$category = $options['cat'] ? $options['cat'] : '';
 	$count = $options['count'] ? 'checked="checked"' : '';
+	$abbr = $options['abbr'] ? 'checked="checked"' : '';
+	$scriptaculous = $options['scriptaculous'] ? 'checked="checked"' : '';
 ?>
 			<div style="text-align:right">
 			<label for="collapsiblearchive-title" style="line-height:25px;display:block;"><?php _e('Widget title:', 'widgets'); ?> <input style="width: 200px;" type="text" id="collapsiblearchive-title" name="collapsiblearchive-title" value="<?php echo ($options['title'] ? wp_specialchars($options['title'], true) : 'Archives'); ?>" /></label>
@@ -149,6 +206,31 @@ function widget_ara_collapsiblearchive_control() {
 					</select>
 			</label>
 			<label for="collapsiblearchive-count" style="line-height:25px;display:block;"><?php _e('Show post counts'); ?> <input class="checkbox" type="checkbox" <?php echo $count; ?> id="collapsiblearchive-count" name="collapsiblearchive-count" /></label>
+			<label for="collapsiblearchive-monthabbr" style="line-height:25px;display:block;"><?php _e('Abbreviate month names'); ?> <input class="checkbox" type="checkbox" <?php echo $abbr; ?> id="collapsiblearchive-monthabbr" name="collapsiblearchive-monthabbr" /></label>
+			<label for="collapsiblearchive-scriptaculous" style="line-height:25px;display:block;"><?php _e('Use script.aculo.us effects'); ?> <input class="checkbox" type="checkbox" <?php echo $scriptaculous; ?> id="collapsiblearchive-scriptaculous" name="collapsiblearchive-scriptaculous" onChange="var slc1 = document.getElementById('collapsiblearchive-effectexpand'); var slc2 = document.getElementById('collapsiblearchive-effectcollapse'); if(this.checked) { slc1.disabled = false; slc2.disabled = false; } else { slc1.disabled = true; slc2.disabled = true; }" /></label>
+			<label for="collapsiblearchive-effectexpand" style="line-height:25px;display:block;">
+				<?php _e('Expand Effect:', 'widgets'); ?>
+					<select style="width: 100px;" id="collapsiblearchive-effectexpand" name="collapsiblearchive-effectexpand" <?php if($scriptaculous == '') echo 'disabled'; ?>>
+						<option value="1"<?php if ($options['effectexpand'] == '1') echo ' selected' ?>>Appear</option>
+						<option value="2"<?php if ($options['effectexpand'] == '2') echo ' selected' ?>>BlindDown</option>
+						<option value="3"<?php if ($options['effectexpand'] == '3') echo ' selected' ?>>SlideDown</option>
+						<option value="4"<?php if ($options['effectexpand'] == '4') echo ' selected' ?>>Grow</option>
+					</select>
+			</label>
+			<label for="collapsiblearchive-effectcollapse" style="line-height:25px;display:block;">
+				<?php _e('Collapse Effect:', 'widgets'); ?>
+					<select style="width: 100px;" id="collapsiblearchive-effectcollapse" name="collapsiblearchive-effectcollapse" <?php if($scriptaculous == '') echo 'disabled'; ?>>
+						<option value="1"<?php if ($options['effectcollapse'] == '1') echo ' selected' ?>>Fade</option>
+						<option value="2"<?php if ($options['effectcollapse'] == '2') echo ' selected' ?>>Puff</option>
+						<option value="3"<?php if ($options['effectcollapse'] == '3') echo ' selected' ?>>BlindUp</option>
+						<option value="4"<?php if ($options['effectcollapse'] == '4') echo ' selected' ?>>SwitchOff</option>
+						<option value="5"<?php if ($options['effectcollapse'] == '5') echo ' selected' ?>>SlideUp</option>
+						<option value="6"<?php if ($options['effectcollapse'] == '6') echo ' selected' ?>>DropOut</option>
+						<option value="7"<?php if ($options['effectcollapse'] == '7') echo ' selected' ?>>Squish</option>
+						<option value="8"<?php if ($options['effectcollapse'] == '8') echo ' selected' ?>>Fold</option>
+						<option value="9"<?php if ($options['effectcollapse'] == '9') echo ' selected' ?>>Shrink</option>
+					</select>
+			</label>
 			<input type="hidden" name="collapsiblearchive-submit" id="collapsiblearchive-submit" value="1" />
 			</div>
 <?php

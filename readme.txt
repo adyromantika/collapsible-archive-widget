@@ -10,7 +10,7 @@ This simple plugin is a widget that displays a collapsible archives list in your
 
 == Description ==
 
-This simple plugin is a widget that displays a collapsible archives list in your widgetized sidebar by utilizing JavaScript.
+This simple plugin is a widget that displays a collapsible archives list in your widgetized sidebar by using JavaScripts. In version 2.0.0 script.aculo.us effects has been added as an option, utilizing the script.aculo.us files supplied with WordPress.
 
 == Installation ==
 
@@ -21,9 +21,13 @@ This simple plugin is a widget that displays a collapsible archives list in your
 == Configuration ==
 
 * Widget title: the title of the widget
-* List types: ul for bulleted list, p for paragraph, br for paragraph with line breaks
+* List type: ul for bulleted list, p for paragraph, br for paragraph with line breaks
 * Show Post count: Whether or not to show the post number for each year and month
+* Use script.aculo.us effects: Whether or not to show effects
+* Expand effect: Effect to use when expanding the list
+* Collapse effect: Effect to use when collapsing the list
 
 == Change Log ==
 
 * 03-Aug-2007: Initial version
+* 04-Sep-2007: Added ability to select whether to use abbreviations for the month names, and script.aculo.us effects!
