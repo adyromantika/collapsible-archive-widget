@@ -23,6 +23,7 @@ This simple plugin is a widget that displays a collapsible archives list in your
 * Widget title: the title of the widget
 * List type: ul for bulleted list, p for paragraph, br for paragraph with line breaks
 * Show Post count: Whether or not to show the post number for each year and month
+* Abbreviate month names: Check this box to show abbreviation of month names
 * Use script.aculo.us effects: Whether or not to show effects
 * Expand effect: Effect to use when expanding the list
 * Collapse effect: Effect to use when collapsing the list
