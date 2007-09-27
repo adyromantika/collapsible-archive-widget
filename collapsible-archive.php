@@ -21,7 +21,7 @@ Plugin Name: Collapsible Archive Widget
 Plugin URI: http://www.romantika.name/v2/2007/08/10/wordpress-plugin-collapsible-archive-widget/
 Description: Display Collapsible Archive Widget.
 Author: Ady Romantika
-Version: 2.0.0
+Version: 2.0.1
 Author URI: http://www.romantika.name/v2/
 */
 
@@ -68,8 +68,8 @@ function ara_collapsiblearchive($before,$after)
 
 		?>
 			<script src="<?php echo get_settings('home'); ?>/wp-includes/js/scriptaculous/prototype.js" type="text/javascript"></script>
-			<script src="<?php echo get_settings('home'); ?>/wp-includes/js/scriptaculous/scriptaculous.js" type="text/javascript"></script>
-			<script language="javaSscript" type="text/javascript">
+			<script src="<?php echo get_settings('home'); ?>/wp-includes/js/scriptaculous/effects.js" type="text/javascript"></script>
+			<script language="JavaScript" type="text/javascript">
 				collapsiblearchive_toggle = function(idyear,visible)
 				{
 					(visible == false ?

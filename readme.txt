@@ -3,7 +3,7 @@ Contributors: adywarna
 Donate link: http://www.romantika.name/v2/
 Tags: collapse, collapsible, archive, collapsible archive, widget
 Requires at least: 2.1
-Tested up to: 2.2.2
+Tested up to: 2.3
 Stable tag: trunk
 
 This simple plugin is a widget that displays a collapsible archives list in your widgetized sidebar by utilizing JavaScript.
@@ -32,3 +32,4 @@ This simple plugin is a widget that displays a collapsible archives list in your
 
 * 03-Aug-2007: Initial version
 * 04-Sep-2007: Added ability to select whether to use abbreviations for the month names, and script.aculo.us effects!
+* 27-Sep-2007: Fixed javascript include - effects.js added and scriptaculous.js removed (For some reason it worked in 2.2).
