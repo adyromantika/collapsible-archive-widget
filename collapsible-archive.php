@@ -129,7 +129,7 @@ function ara_get_archivesbymonth($year, $count, $before, $after, $abbr)
 	$options = (array) get_option('widget_ara_collapsiblearchive');
 	$scriptaculous = $options['scriptaculous'] ? 1 : 0;
 	$defaultexpand = $options['defaultexpand'] ? 1 : 0;
-	$show_individual_posts = $options['showposts'];
+	$show_individual_posts = $options['showposts'] ? 1 : 0;
 
 	$monthresults = $wpdb->get_results("SELECT DISTINCT YEAR(post_date) AS `year`, MONTH(post_date) AS `month`, count(ID) as posts"
 		. " FROM $wpdb->posts"
@@ -173,6 +173,8 @@ function ara_get_archivesbymonth($year, $count, $before, $after, $abbr)
 function ara_get_postsbymonth($year, $month, $before, $after)
 {
 	global $wpdb;
+	$options = (array) get_option('widget_ara_collapsiblearchive');
+	$defaultexpand = $options['defaultexpand'] ? 1 : 0;
 
     if (empty($year) || empty($month)) {
         return null;
