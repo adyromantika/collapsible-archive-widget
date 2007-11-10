@@ -21,7 +21,7 @@ Plugin Name: Collapsible Archive Widget
 Plugin URI: http://www.romantika.name/v2/2007/08/10/wordpress-plugin-collapsible-archive-widget/
 Description: Display Collapsible Archive Widget.
 Author: Ady Romantika
-Version: 2.0.1
+Version: 2.1
 Author URI: http://www.romantika.name/v2/
 */
 
@@ -36,6 +36,7 @@ function ara_collapsiblearchive($before,$after)
 	$scriptaculous = $options['scriptaculous'] ? 1 : 0;
 	$effectexpand = $options['effectexpand'] ? $options['effectexpand'] : 1;
 	$effectcollapse = $options['effectcollapse'] ? $options['effectcollapse'] : 1;
+	$defaultexpand = $options['defaultexpand'] ? 1 : 0;
 
 	# years
 	$years	= ara_get_archivesbyyear();
@@ -70,12 +71,25 @@ function ara_collapsiblearchive($before,$after)
 			<script src="<?php echo get_settings('home'); ?>/wp-includes/js/scriptaculous/prototype.js" type="text/javascript"></script>
 			<script src="<?php echo get_settings('home'); ?>/wp-includes/js/scriptaculous/effects.js" type="text/javascript"></script>
 			<script language="JavaScript" type="text/javascript">
-				collapsiblearchive_toggle = function(idyear,visible)
+				collapsiblearchive_toggle_year = function(idyear,visible)
 				{
 					(visible == false ?
-						new Effect.<?php echo $effxp ?>(document.getElementById('ara_ca' + idyear)) :
-						new Effect.<?php echo $effcl ?>(document.getElementById('ara_ca' + idyear))
+						new Effect.<?php echo $effxp ?>(document.getElementById('ara_ca_mo' + idyear)) :
+						new Effect.<?php echo $effcl ?>(document.getElementById('ara_ca_mo' + idyear))
 						);
+					var sign = document.getElementById('ara_ca_mosign' + idyear);
+					(visible == false ? sign.innerHTML = '[-]' : sign.innerHTML = '[+]');
+					visible = (visible == false ? true : false);
+					return visible;
+				}
+				collapsiblearchive_toggle_month = function(idymonth,visible)
+				{
+					(visible == false ?
+						new Effect.<?php echo $effxp ?>(document.getElementById('ara_ca_po' + idymonth)) :
+						new Effect.<?php echo $effcl ?>(document.getElementById('ara_ca_po' + idymonth))
+						);
+					var sign = document.getElementById('ara_ca_posign' + idymonth);
+					(visible == false ? sign.innerHTML = '[-]' : sign.innerHTML = '[+]');
 					visible = (visible == false ? true : false);
 					return visible;
 				}
@@ -83,38 +97,7 @@ function ara_collapsiblearchive($before,$after)
 		<?php
 	}
 
-	switch($list_type)
-	{
-		case "br":
-			$parentOpen	=	"\n\t<p>";
-			$parentClose=	"\n\t</p>";
-			$lineStart	=	"\n\t\t\t";
-			$lineEnd	=	"<br />";
-			$childOpen	=	"\n\t\t<div";
-			$childClose	=	"\t\t</div>";
-			$preappend	=	"&nbsp;&nbsp;";
-			break;
-		case "p":
-			$parentOpen	=	"\n\t<p>";
-			$parentClose=	"\n\t</p>";
-			$lineStart	=	"\n\t\t\t<p>";
-			$lineEnd	=	"</p>";
-			$childOpen	=	"\n\t\t<div";
-			$childClose	=	"\t\t</div>";
-			$preappend	=	"&nbsp;&nbsp;";
-			break;
-		case "ul":
-		default:
-			$parentOpen	=	"\n\t<li>";
-			$parentClose=	"\n\t</li>";
-			$lineStart	=	"\n\t\t\t<li>";
-			$lineEnd	=	"</li>";
-			$childOpen	=   "\n\t\t<ul";
-			$childClose	=	"\t\t</ul>";
-			$preappend	=	'';
-			$parentPreOpen	=	"\n<ul>";
-			$parentPreClose	=	"\n</ul>";
-	}
+	list($parentOpen, $parentClose, $lineStart, $lineEnd, $childOpen, $childClose, $preappend, $parentPreOpen, $parentPreClose, $list_type) = ara_getlisttype();
 
 	$string_to_echo .= $parentPreOpen;
 	for ($x=0;$x<count($years);$x++ )
@@ -122,26 +105,30 @@ function ara_collapsiblearchive($before,$after)
 		if (strlen($parentOpen) > 0 ) $string_to_echo .= $parentOpen;
 		if($scriptaculous > 0)
 		{
-			?><script language="JavaScript" type="text/javascript">var visible_<?php echo $years[$x]->year ?> = false;</script><?php
-			$string_to_echo .= '<a style="cursor:pointer;" onClick="visible_'.$years[$x]->year.' = collapsiblearchive_toggle(\''.$years[$x]->year.'\',visible_'.$years[$x]->year.')">'.$years[$x]->year.'</a>';
+			?><script language="JavaScript" type="text/javascript">var visible_<?php echo $years[$x]->year ?> = <?php echo ($defaultexpand ? 'true' : 'false') ?>;</script><?php
+			$string_to_echo .= '<a style="cursor:pointer;" onClick="visible_'.$years[$x]->year.' = collapsiblearchive_toggle_year(\''.$years[$x]->year.'\',visible_'.$years[$x]->year.')"><span id="ara_ca_mosign'.$years[$x]->year.'">['.($defaultexpand ? '-' : '+').']</span></a> <a href="'.get_year_link($years[$x]->year).'">'.$years[$x]->year.'</a>';
 		}
 		else
 		{
-			$string_to_echo .= '<a style="cursor:pointer;" onClick="var listobject = document.getElementById(\'ara_ca'.$years[$x]->year.'\'); if(listobject.style.display == \'block\') listobject.style.display = \'none\'; else listobject.style.display = \'block\';">'.$years[$x]->year.'</a>';
+			$string_to_echo .= '<a style="cursor:pointer;" onClick="var listobject = document.getElementById(\'ara_ca_mo'.$years[$x]->year.'\'); var sign = document.getElementById(\'ara_ca_mosign\' + '.$years[$x]->year.'); if(listobject.style.display == \'block\') { listobject.style.display = \'none\'; sign.innerHTML = \'[+]\'; } else { listobject.style.display = \'block\'; sign.innerHTML = \'[-]\'; }"><span id="ara_ca_mosign'.$years[$x]->year.'">['.($defaultexpand ? '-' : '+').']</span></a> <a href="'.get_year_link($years[$x]->year).'">'.$years[$x]->year.'</a>';
 		}
 		if($count > 0) $string_to_echo .= '&nbsp;('.$years[$x]->posts.')';
-		$string_to_echo .= $childOpen.' id="ara_ca'.$years[$x]->year.'" style="display:none">';
+		$string_to_echo .= $childOpen.' id="ara_ca_mo'.$years[$x]->year.'" style="display:'.($defaultexpand ? 'block' : 'none').'">';
 		$string_to_echo .= ara_get_archivesbymonth($years[$x]->year,$count,$lineStart.$preappend,$lineEnd,$abbr);
 		$string_to_echo .= $childClose;
 		if (strlen($parentClose) > 0) $string_to_echo .= $parentClose;
 	}
 	$string_to_echo .= $parentPreClose;
+
 	return $string_to_echo;
 }
 
 function ara_get_archivesbymonth($year, $count, $before, $after, $abbr)
 {
 	global $wpdb, $wp_locale;
+	$options = (array) get_option('widget_ara_collapsiblearchive');
+	$scriptaculous = $options['scriptaculous'] ? 1 : 0;
+	$defaultexpand = $options['defaultexpand'] ? 1 : 0;
 
 	$monthresults = $wpdb->get_results("SELECT DISTINCT YEAR(post_date) AS `year`, MONTH(post_date) AS `month`, count(ID) as posts"
 		. " FROM $wpdb->posts"
@@ -154,12 +141,64 @@ function ara_get_archivesbymonth($year, $count, $before, $after, $abbr)
 
 	foreach ($monthresults as $month)
 	{
+		$options = (array) get_option('widget_ara_collapsiblearchive');
+		$show_individual_posts = $options['showposts'];
 		$url	= get_month_link($year,	$month->month);
+		if($scriptaculous > 0)
+		{
+			$add_before = '<script language="JavaScript" type="text/javascript">var visible_'.$year.$month->month.' = '.($defaultexpand ? 'true' : 'false').'</script>';
+			$add_before .= '<a style="cursor:pointer;" onClick="visible_'.$year.$month->month.' = collapsiblearchive_toggle_month(\''.$year.$month->month.'\',visible_'.$year.$month->month.')"><span id="ara_ca_posign'.$year.$month->month.'">['.($defaultexpand ? '-' : '+').']</span></a> ';
+		}
+		else
+		{
+			$add_before = '<a style="cursor:pointer;" onClick="var listobject = document.getElementById(\'ara_ca_po'.$year.$month->month.'\'); var sign = document.getElementById(\'ara_ca_posign\' + '.$year.$month->month.'); if(listobject.style.display == \'block\') { listobject.style.display = \'none\'; sign.innerHTML = \'[+]\'; } else { listobject.style.display = \'block\'; sign.innerHTML = \'[-]\'; }"><span id="ara_ca_posign'.$year.$month->month.'">['.($defaultexpand ? '-' : '+').']</span></a> ';
+		}
 		$text = sprintf(__('%1$s %2$d'), ($abbr > 0 ? $wp_locale->get_month_abbrev($wp_locale->get_month($month->month)) : $wp_locale->get_month($month->month)), $year);
 		if ($count > 0)	$aftertext = '&nbsp;('.$month->posts.')' . $after;
 		else $aftertext = $after;
-		$result_string .= get_archives_link($url, $text, 'custom', $before, $aftertext);
+		$result_string .= get_archives_link($url, $text, 'custom', $before.$add_before, $aftertext);
+
+		if($show_individual_posts)
+		{
+			$result_string .= ara_get_postsbymonth($year, $month->month, '', '');
+		}
 	}
+
+	return $result_string;
+}
+
+function ara_get_postsbymonth($year, $month, $before, $after)
+{
+	global $wpdb;
+
+    if (empty($year) || empty($month)) {
+        return null;
+    }
+
+   	list($parentOpen, $parentClose, $lineStart, $lineEnd, $childOpen, $childClose, $preappend, $parentPreOpen, $parentPreClose, $list_type) = ara_getlisttype();
+
+	$postresults = $wpdb->get_results("SELECT ID, post_title, post_name"
+        . " FROM $wpdb->posts"
+        . " WHERE $wpdb->posts.post_status = 'publish' AND $wpdb->posts.post_type = 'post'"
+        . " AND YEAR(post_date) = $year AND MONTH(post_date) = $month"
+        . " ORDER BY post_date DESC");
+
+	$result_string = '';
+
+	$sectionstart = true;
+
+	foreach ($postresults as $post)
+	{
+		if($sectionstart)
+		{
+			$result_string .= $childOpen.' id="ara_ca_po'.$year.$month.'" style="display:'.($defaultexpand ? 'block' : 'none').'">';
+			$sectionstart = false;
+		}
+		$url  = get_permalink($post->ID);
+		$result_string .= $lineStart.($list_type == 'br' || $list_type == 'p' ? $preappend.$preappend : $preappend).'<a href="'.get_permalink($post->ID).'">'.$post->post_title.'</a>'.$lineEnd;
+	}
+
+	$result_string .= $childClose;
 
 	return $result_string;
 }
@@ -186,6 +225,8 @@ function widget_ara_collapsiblearchive_control() {
 		$newoptions['scriptaculous'] = isset($_POST['collapsiblearchive-scriptaculous']);
 		$newoptions['effectexpand'] = $_POST['collapsiblearchive-effectexpand'];
 		$newoptions['effectcollapse'] = $_POST['collapsiblearchive-effectcollapse'];
+		$newoptions['showposts'] = $_POST['collapsiblearchive-showposts'];
+		$newoptions['defaultexpand'] = $_POST['collapsiblearchive-defaultexpand'];
 	}
 	if ( $options != $newoptions ) {
 		$options = $newoptions;
@@ -193,9 +234,11 @@ function widget_ara_collapsiblearchive_control() {
 	}
 	$count = $options['count'] ? 'checked="checked"' : '';
 	$abbr = $options['abbr'] ? 'checked="checked"' : '';
+	$showposts = $options['showposts'] ? 'checked="checked"' : '';
+	$defaultexpand = $options['defaultexpand'] ? 'checked="checked"' : '';
 	$scriptaculous = $options['scriptaculous'] ? 'checked="checked"' : '';
 ?>
-			<div style="text-align:right">
+			<div style="text-align:right;">
 			<label for="collapsiblearchive-title" style="line-height:25px;display:block;"><?php _e('Widget title:', 'widgets'); ?> <input style="width: 200px;" type="text" id="collapsiblearchive-title" name="collapsiblearchive-title" value="<?php echo ($options['title'] ? wp_specialchars($options['title'], true) : 'Archives'); ?>" /></label>
 			<label for="collapsiblearchive-type" style="line-height:25px;display:block;">
 				<?php _e('List Type:', 'widgets'); ?>
@@ -231,9 +274,54 @@ function widget_ara_collapsiblearchive_control() {
 						<option value="9"<?php if ($options['effectcollapse'] == '9') echo ' selected' ?>>Shrink</option>
 					</select>
 			</label>
+			<label for="collapsiblearchive-defaultexpand" style="line-height:25px;display:block;"><?php _e('Expand the list by default'); ?> <input class="checkbox" type="checkbox" <?php echo $defaultexpand; ?> id="collapsiblearchive-defaultexpand" name="collapsiblearchive-defaultexpand" /></label>
+			<label for="collapsiblearchive-showposts" style="line-height:25px;display:block;"><?php _e('Show individual posts (<a target="_blank" href="http://www.romantika.name/v2/2007/08/10/wordpress-plugin-collapsible-archive-widget/#showpostswarning">Warning</a>)'); ?> <input class="checkbox" type="checkbox" <?php echo $showposts; ?> id="collapsiblearchive-showposts" name="collapsiblearchive-showposts" /></label>
 			<input type="hidden" name="collapsiblearchive-submit" id="collapsiblearchive-submit" value="1" />
 			</div>
 <?php
+}
+
+function ara_getlisttype()
+{
+	$options = (array) get_option('widget_ara_collapsiblearchive');
+	$list_type = $options['type'] ? $options['type'] : 'ul';
+	switch($list_type)
+	{
+		case "br":
+			$parentOpen	=	"\n\t<p>";
+			$parentClose=	"\n\t</p>";
+			$lineStart	=	"\n\t\t\t";
+			$lineEnd	=	"<br />";
+			$childOpen	=	"\n\t\t<div";
+			$childClose	=	"\t\t</div>";
+			$preappend	=	"&nbsp;&nbsp;";
+			$parentPreOpen	=	null;
+			$parentPreClose	=	null;
+			break;
+		case "p":
+			$parentOpen	=	"\n\t<p>";
+			$parentClose=	"\n\t</p>";
+			$lineStart	=	"\n\t\t\t<p>";
+			$lineEnd	=	"</p>";
+			$childOpen	=	"\n\t\t<div";
+			$childClose	=	"\t\t</div>";
+			$preappend	=	"&nbsp;&nbsp;";
+			$parentPreOpen	=	null;
+			$parentPreClose	=	null;
+			break;
+		case "ul":
+		default:
+			$parentOpen	=	"\n\t<li>";
+			$parentClose=	"\n\t</li>";
+			$lineStart	=	"\n\t\t\t<li>";
+			$lineEnd	=	"</li>";
+			$childOpen	=   "\n\t\t<ul";
+			$childClose	=	"\t\t</ul>";
+			$preappend	=	'';
+			$parentPreOpen	=	"\n<ul>";
+			$parentPreClose	=	"\n</ul>";
+	}
+	return array($parentOpen, $parentClose, $lineStart, $lineEnd, $childOpen, $childClose, $preappend, $parentPreOpen, $parentPreClose, $list_type);
 }
 
 function ara_collapsiblearchive_microtime_float()
@@ -263,7 +351,7 @@ function widget_ara_collapsiblearchive_init() {
 
 	// Tell Dynamic Sidebar about our new widget and its control
 	register_sidebar_widget(array('Collapsible Archive', 'widgets'), 'widget_ara_collapsiblearchive');
-	register_widget_control(array('Collapsible Archive', 'widgets'), 'widget_ara_collapsiblearchive_control');
+	register_widget_control(array('Collapsible Archive', 'widgets'), 'widget_ara_collapsiblearchive_control', 300, 300);
 }
 
 // Delay plugin execution to ensure Dynamic Sidebar has a chance to load first
