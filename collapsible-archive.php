@@ -129,6 +129,7 @@ function ara_get_archivesbymonth($year, $count, $before, $after, $abbr)
 	$options = (array) get_option('widget_ara_collapsiblearchive');
 	$scriptaculous = $options['scriptaculous'] ? 1 : 0;
 	$defaultexpand = $options['defaultexpand'] ? 1 : 0;
+	$show_individual_posts = $options['showposts'];
 
 	$monthresults = $wpdb->get_results("SELECT DISTINCT YEAR(post_date) AS `year`, MONTH(post_date) AS `month`, count(ID) as posts"
 		. " FROM $wpdb->posts"
@@ -141,18 +142,20 @@ function ara_get_archivesbymonth($year, $count, $before, $after, $abbr)
 
 	foreach ($monthresults as $month)
 	{
-		$options = (array) get_option('widget_ara_collapsiblearchive');
-		$show_individual_posts = $options['showposts'];
-		$url	= get_month_link($year,	$month->month);
-		if($scriptaculous > 0)
+		$url = get_month_link($year, $month->month);
+		if($show_individual_posts > 0)
 		{
-			$add_before = '<script language="JavaScript" type="text/javascript">var visible_'.$year.$month->month.' = '.($defaultexpand ? 'true' : 'false').'</script>';
-			$add_before .= '<a style="cursor:pointer;" onClick="visible_'.$year.$month->month.' = collapsiblearchive_toggle_month(\''.$year.$month->month.'\',visible_'.$year.$month->month.')"><span id="ara_ca_posign'.$year.$month->month.'">['.($defaultexpand ? '-' : '+').']</span></a> ';
+			if($scriptaculous > 0)
+			{
+				$add_before = '<script language="JavaScript" type="text/javascript">var visible_'.$year.$month->month.' = '.($defaultexpand ? 'true' : 'false').'</script>';
+				$add_before .= '<a style="cursor:pointer;" onClick="visible_'.$year.$month->month.' = collapsiblearchive_toggle_month(\''.$year.$month->month.'\',visible_'.$year.$month->month.')"><span id="ara_ca_posign'.$year.$month->month.'">['.($defaultexpand ? '-' : '+').']</span></a> ';
+			}
+			else
+			{
+				$add_before = '<a style="cursor:pointer;" onClick="var listobject = document.getElementById(\'ara_ca_po'.$year.$month->month.'\'); var sign = document.getElementById(\'ara_ca_posign\' + '.$year.$month->month.'); if(listobject.style.display == \'block\') { listobject.style.display = \'none\'; sign.innerHTML = \'[+]\'; } else { listobject.style.display = \'block\'; sign.innerHTML = \'[-]\'; }"><span id="ara_ca_posign'.$year.$month->month.'">['.($defaultexpand ? '-' : '+').']</span></a> ';
+			}
 		}
-		else
-		{
-			$add_before = '<a style="cursor:pointer;" onClick="var listobject = document.getElementById(\'ara_ca_po'.$year.$month->month.'\'); var sign = document.getElementById(\'ara_ca_posign\' + '.$year.$month->month.'); if(listobject.style.display == \'block\') { listobject.style.display = \'none\'; sign.innerHTML = \'[+]\'; } else { listobject.style.display = \'block\'; sign.innerHTML = \'[-]\'; }"><span id="ara_ca_posign'.$year.$month->month.'">['.($defaultexpand ? '-' : '+').']</span></a> ';
-		}
+		else $add_before = '';
 		$text = sprintf(__('%1$s %2$d'), ($abbr > 0 ? $wp_locale->get_month_abbrev($wp_locale->get_month($month->month)) : $wp_locale->get_month($month->month)), $year);
 		if ($count > 0)	$aftertext = '&nbsp;('.$month->posts.')' . $after;
 		else $aftertext = $after;
