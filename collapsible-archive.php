@@ -130,6 +130,7 @@ function ara_get_archivesbymonth($year, $count, $before, $after, $abbr)
 	$scriptaculous = $options['scriptaculous'] ? 1 : 0;
 	$defaultexpand = $options['defaultexpand'] ? 1 : 0;
 	$show_individual_posts = $options['showposts'] ? 1 : 0;
+	$count = $options['count'] ? 1 : 0;
 
 	$monthresults = $wpdb->get_results("SELECT DISTINCT YEAR(post_date) AS `year`, MONTH(post_date) AS `month`, count(ID) as posts"
 		. " FROM $wpdb->posts"
