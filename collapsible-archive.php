@@ -21,7 +21,7 @@ Plugin Name: Collapsible Archive Widget
 Plugin URI: http://www.romantika.name/v2/2007/08/10/wordpress-plugin-collapsible-archive-widget/
 Description: Display Collapsible Archive Widget.
 Author: Ady Romantika
-Version: 2.1.1
+Version: 2.1.2
 Author URI: http://www.romantika.name/v2/
 */
 
