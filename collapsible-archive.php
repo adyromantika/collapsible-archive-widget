@@ -19,9 +19,9 @@
 /*
 Plugin Name: Collapsible Archive Widget
 Plugin URI: http://www.romantika.name/v2/wordpress-plugin-collapsible-archive-widget/
-Description: Display Collapsible Archive Widget.
+Description: Display Collapsible Archive in yous sidebar to save space.
+Version: 2.2.1
 Author: Ady Romantika
-Version: 2.2.0
 Author URI: http://www.romantika.name/v2/
 */
 
@@ -101,14 +101,23 @@ function ara_collapsiblearchive($before,$after)
 					visible = (visible == false ? true : false);
 					return visible;
 				}
-				collapsiblearchive_togglesign = function(element,visibility)
-				{
-					(visibility == false ? element.innerHTML = '<?php print $ara_collapsible_icons['minus'] ?>' : element.innerHTML = '<?php print $ara_collapsible_icons['plus'] ?>');
-				}
 			// -->
 			</script>
 		<?php
 	}
+	
+	?>
+	
+	<script type="text/javascript">
+	// <!--
+		collapsiblearchive_togglesign = function(element,visibility)
+		{
+			(visibility == false ? element.innerHTML = '<?php print $ara_collapsible_icons['minus'] ?>' : element.innerHTML = '<?php print $ara_collapsible_icons['plus'] ?>');
+		}
+	// -->
+	</script>
+	
+	<?php
 
 	list($parentOpen, $parentClose, $lineStart, $lineEnd, $childOpen, $childClose, $preappend, $parentPreOpen, $parentPreClose) = ara_collapsiblearchive_getlisttype();
 
@@ -123,7 +132,30 @@ function ara_collapsiblearchive($before,$after)
 		}
 		else
 		{
-			$string_to_echo .= '<a style="cursor:pointer;" onclick="var listobject = document.getElementById(\'ara_ca_mo'.$years[$x]->year.'\'); var sign = document.getElementById(\'ara_ca_mosign\' + '.$years[$x]->year.'); if(listobject.style.display == \'block\') { listobject.style.display = \'none\'; collapsiblearchive_togglesign(sign, false); } else { listobject.style.display = \'block\'; collapsiblearchive_togglesign(sign, true); }"><span id="ara_ca_mosign'.$years[$x]->year.'">['.(($defaultexpand || ($expandcurryear && date("Y") == $years[$x]->year)) ? '-' : '+').']</span></a> <a href="'.get_year_link($years[$x]->year).'">'.$years[$x]->year.'</a>';
+			$icon = ($defaultexpand || ($expandcurryear && date("Y") == $years[$x]->year)) ? $ara_collapsible_icons['minus'] : $ara_collapsible_icons['plus'];
+			$year_link = get_year_link($years[$x]->year);
+			$string_to_echo .= <<<EOB
+				<a 
+					style="cursor:pointer;" 
+					onclick="
+						var listobject = document.getElementById('ara_ca_mo' + {$years[$x]->year});
+						var sign = document.getElementById('ara_ca_mosign' + {$years[$x]->year});
+						if(listobject.style.display == 'block')
+						{
+							listobject.style.display = 'none';
+							collapsiblearchive_togglesign(sign, true);
+						}
+						else
+						{
+							listobject.style.display = 'block';
+							collapsiblearchive_togglesign(sign, false); 
+						}">
+						<span id="ara_ca_mosign{$years[$x]->year}">
+							$icon
+						</span>
+					</a>
+					<a href="$year_link">{$years[$x]->year}</a>	
+EOB;
 		}
 		if($count > 0) $string_to_echo .= '&nbsp;('.$years[$x]->posts.')';
 		$string_to_echo .= $childOpen.' id="ara_ca_mo'.$years[$x]->year.'" style="display:'.(($defaultexpand || ($expandcurryear && date("Y") == $years[$x]->year)) ? 'block' : 'none').'">';
@@ -167,7 +199,28 @@ function ara_collapsiblearchive_get_archivesbymonth($year, $count, $before, $aft
 			}
 			else
 			{
-				$add_before = '<a style="cursor:pointer;" onclick="var listobject = document.getElementById(\'ara_ca_po'.$year.$month->month.'\'); var sign = document.getElementById(\'ara_ca_posign\' + '.$year.$month->month.'); if(listobject.style.display == \'block\') { listobject.style.display = \'none\'; collapsiblearchive_togglesign(sign, false); } else { listobject.style.display = \'block\'; collapsiblearchive_togglesign(sign, true); }"><span id="ara_ca_posign'.$year.$month->month.'">'.(($defaultexpand || ($expandcurrmonth && date("Y") == $year && date("n") == $month->month)) ? $ara_collapsible_icons['minus'] : $ara_collapsible_icons['plus']).'</span></a> ';
+				#$add_before = '<a style="cursor:pointer;" onclick="var listobject = document.getElementById(\'ara_ca_po'.$year.$month->month.'\'); var sign = document.getElementById(\'ara_ca_posign\' + '.$year.$month->month.'); if(listobject.style.display == \'block\') { listobject.style.display = \'none\'; collapsiblearchive_togglesign(sign, false); } else { listobject.style.display = \'block\'; collapsiblearchive_togglesign(sign, true); }"><span id="ara_ca_posign'.$year.$month->month.'">'.(($defaultexpand || ($expandcurrmonth && date("Y") == $year && date("n") == $month->month)) ? $ara_collapsible_icons['minus'] : $ara_collapsible_icons['plus']).'</span></a> ';
+				$icon = ($defaultexpand || ($expandcurrmonth && date("Y") == $year && date("n") == $month->month)) ? $ara_collapsible_icons['minus'] : $ara_collapsible_icons['plus'];
+				$add_before = <<<EOB
+					<a
+						style="cursor:pointer;"
+						onclick="
+							var listobject = document.getElementById('ara_ca_po$year{$month->month}');
+							var sign = document.getElementById('ara_ca_posign' + '$year{$month->month}');
+							if(listobject.style.display == 'block')
+							{
+								listobject.style.display = 'none';
+								collapsiblearchive_togglesign(sign, true);
+							}
+							else
+							{
+								listobject.style.display = 'block';
+								collapsiblearchive_togglesign(sign, false);
+							}
+					">
+						<span id="ara_ca_posign$year{$month->month}">$icon</span>
+					</a>
+EOB;
 			}
 		}
 		else $add_before = '';
@@ -406,8 +459,15 @@ function widget_ara_collapsiblearchive_init() {
 	register_widget_control(array('Collapsible Archive', 'widgets'), 'widget_ara_collapsiblearchive_control', 300, 300);
 }
 
+function widget_ara_collapsiblearchive_enqueue()
+{
+	$options = (array) get_option('widget_ara_collapsiblearchive');
+	$scriptaculous = $options['scriptaculous'] ? 1 : 0;
+	if(function_exists('wp_enqueue_script') && $scriptaculous > 0) wp_enqueue_script('scriptaculous-effects');
+}
+
 // Delay plugin execution to ensure Dynamic Sidebar has a chance to load first
-if(function_exists('wp_enqueue_script')) add_action('widgets_init', create_function('', 'wp_enqueue_script("scriptaculous-effects");'));
+add_action('widgets_init', 'widget_ara_collapsiblearchive_enqueue');
 add_action('widgets_init', 'widget_ara_collapsiblearchive_init');
 
 ?>
