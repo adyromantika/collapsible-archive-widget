@@ -4,7 +4,7 @@ Donate link: http://www.romantika.name/v2/
 Tags: collapse, collapsible, archive, collapsible archive, widget
 Requires at least: 2.1
 Tested up to: 2.6.1
-Stable tag: 2.2.1
+Stable tag: 2.2.1.1
 
 This simple plugin is a widget that displays a collapsible archives list in your widgetized sidebar by utilizing JavaScript.
 
@@ -33,6 +33,7 @@ This simple plugin is a widget that displays a collapsible archives list in your
 * Expand current year by default: Check this box to have the current year expanded when loaded
 * Expand current month by default: Check this box to have the current month expanded when loaded
 * Show individual posts: Show posts in the list. This should be used in extra caution; if you have a lot of posts consider disabling it as this will take time to load
+* Use HTML arrows instead of images (&#9658; &#9660;) 
 * Show a link to plugin page. Thank you for your support! : Display a link to plugin page as a support method
 
 == TODO ==
@@ -49,3 +50,4 @@ This simple plugin is a widget that displays a collapsible archives list in your
 * 10-Nov-2007: Added ability to display posts (with caution), to expand by default, and also added plus and minus signs as expand/collapse buttons
 * 24-Aug-2008: Multiple updates: (1) Enqueue javascripts using WordPress API wp_enqueue_script (2) Validation as XHTML 1.0 Transitional (3) Add option to expand current year and/or month by default (4) REMOVED list type option (5) Added ability to upload own plus and minus images (6) Added ability to display plugin link. If you'd like to support this plugin, having the "powered by" on your blog is the best way; it's our only promotion or advertising.
 * 25-Aug-2008: Bugfix to not load javascripts when effects is not used 
+* 25-Aug-2008: Code factoring and added ability to use HTML arrows

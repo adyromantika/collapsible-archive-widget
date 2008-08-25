@@ -1,5 +1,15 @@
 <?php
-/*  Copyright 2007  ADY ROMANTIKA  (email : ady@romantika.name)
+/*
+Plugin Name: Collapsible Archive Widget
+Plugin URI: http://www.romantika.name/v2/wordpress-plugin-collapsible-archive-widget/
+Description: Display Collapsible Archive in yous sidebar to save space.
+Version: 2.2.1.1
+Author: Ady Romantika
+Author URI: http://www.romantika.name/v2/
+*/
+
+/*
+	Copyright 2007-2008  ADY ROMANTIKA  (ady AT romantika DOT name)
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,15 +26,6 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-/*
-Plugin Name: Collapsible Archive Widget
-Plugin URI: http://www.romantika.name/v2/wordpress-plugin-collapsible-archive-widget/
-Description: Display Collapsible Archive in yous sidebar to save space.
-Version: 2.2.1
-Author: Ady Romantika
-Author URI: http://www.romantika.name/v2/
-*/
-
 function ara_collapsiblearchive($before,$after)
 {
 	global $wpdb, $ara_collapsible_icons;
@@ -37,13 +38,17 @@ function ara_collapsiblearchive($before,$after)
 	$effectcollapse = $options['effectcollapse'] ? $options['effectcollapse'] : 1;
 	$defaultexpand = $options['defaultexpand'] ? 1 : 0;
 	$expandcurryear = $options['expandcurryear'] ? 1 : 0;
+	$htmlarrows = $options['htmlarrows'] ? 1 : 0;
 
 	# years
 	$years	= ara_collapsiblearchive_get_archivesbyyear();
 
 	# Header
 	$string_to_echo  =  ($before.$title.$after."\n");
-
+	?>
+	<script type="text/javascript">
+	//<!--
+	<?php
 	if($scriptaculous > 0) # Only do this if scriptaculous is selected
 	{
 		switch($effectexpand)
@@ -77,46 +82,50 @@ function ara_collapsiblearchive($before,$after)
 		<?php
 			endif;
 		?>
-			<script type="text/javascript">
-			//<!--
-				collapsiblearchive_toggle_year = function(idyear,visible)
-				{
-					(visible == false ?
-						new Effect.<?php echo $effxp ?>(document.getElementById('ara_ca_mo' + idyear)) :
-						new Effect.<?php echo $effcl ?>(document.getElementById('ara_ca_mo' + idyear))
-						);
-					var sign = document.getElementById('ara_ca_mosign' + idyear);
-					collapsiblearchive_togglesign(sign, visible);
-					visible = (visible == false ? true : false);
-					return visible;
-				}
-				collapsiblearchive_toggle_month = function(idymonth,visible)
-				{
-					(visible == false ?
-						new Effect.<?php echo $effxp ?>(document.getElementById('ara_ca_po' + idymonth)) :
-						new Effect.<?php echo $effcl ?>(document.getElementById('ara_ca_po' + idymonth))
-						);
-					var sign = document.getElementById('ara_ca_posign' + idymonth);
-					collapsiblearchive_togglesign(sign, visible);
-					visible = (visible == false ? true : false);
-					return visible;
-				}
-			// -->
-			</script>
+
+		collapsiblearchive_toggle = function(listelement,visible,listsign)
+		{
+			(visible == false ?
+				new Effect.<?php echo $effxp ?>(document.getElementById(listelement)) :
+				new Effect.<?php echo $effcl ?>(document.getElementById(listelement))
+				);
+			var sign = document.getElementById(listsign);
+			collapsiblearchive_togglesign(sign, visible);
+			visible = (visible == false ? true : false);
+			return visible;
+		}
 		<?php
 	}
-	
+	else
+	{	
 	?>
-	
-	<script type="text/javascript">
-	// <!--
+
+		collapsiblearchive_toggle = function(listelement, listsign)
+		{
+			var listobject = document.getElementById(listelement);
+			var sign = document.getElementById(listsign);
+			if(listobject.style.display == 'block')
+			{
+				listobject.style.display = 'none';
+				collapsiblearchive_togglesign(sign, true);
+			}
+			else
+			{
+				listobject.style.display = 'block';
+				collapsiblearchive_togglesign(sign, false); 
+			}
+		}
+	<?php
+	}
+	?>
+
 		collapsiblearchive_togglesign = function(element,visibility)
 		{
-			(visibility == false ? element.innerHTML = '<?php print $ara_collapsible_icons['minus'] ?>' : element.innerHTML = '<?php print $ara_collapsible_icons['plus'] ?>');
+			(visibility == false ? element.innerHTML = '<?php print $ara_collapsible_icons['minus'][$htmlarrows] ?>' : element.innerHTML = '<?php print $ara_collapsible_icons['plus'][$htmlarrows] ?>');
 		}
+
 	// -->
 	</script>
-	
 	<?php
 
 	list($parentOpen, $parentClose, $lineStart, $lineEnd, $childOpen, $childClose, $preappend, $parentPreOpen, $parentPreClose) = ara_collapsiblearchive_getlisttype();
@@ -125,38 +134,22 @@ function ara_collapsiblearchive($before,$after)
 	for ($x=0;$x<count($years);$x++ )
 	{
 		if (strlen($parentOpen) > 0 ) $string_to_echo .= $parentOpen;
+		$icon = ($defaultexpand || ($expandcurryear && date("Y") == $years[$x]->year)) ? $ara_collapsible_icons['minus'][$htmlarrows] : $ara_collapsible_icons['plus'][$htmlarrows];
+		$year_link = get_year_link($years[$x]->year);
 		if($scriptaculous > 0)
 		{
 			?><script type="text/javascript">var visible_<?php echo $years[$x]->year ?> = <?php echo (($defaultexpand || ($expandcurryear && date("Y") == $years[$x]->year)) ? 'true' : 'false') ?>;</script><?php
-			$string_to_echo .= '<a style="cursor:pointer;" onclick="visible_'.$years[$x]->year.' = collapsiblearchive_toggle_year(\''.$years[$x]->year.'\',visible_'.$years[$x]->year.')"><span id="ara_ca_mosign'.$years[$x]->year.'">'.(($defaultexpand || ($expandcurryear && date("Y") == $years[$x]->year)) ? $ara_collapsible_icons['minus'] : $ara_collapsible_icons['plus']).'</span></a> <a href="'.get_year_link($years[$x]->year).'">'.$years[$x]->year.'</a>';
+			$string_to_echo .= <<<EOB
+				<a style="cursor:pointer;" onclick="visible_{$years[$x]->year} = collapsiblearchive_toggle('ara_ca_mo{$years[$x]->year}',visible_{$years[$x]->year},'ara_ca_mosign{$years[$x]->year}')">
+EOB;
 		}
 		else
 		{
-			$icon = ($defaultexpand || ($expandcurryear && date("Y") == $years[$x]->year)) ? $ara_collapsible_icons['minus'] : $ara_collapsible_icons['plus'];
-			$year_link = get_year_link($years[$x]->year);
 			$string_to_echo .= <<<EOB
-				<a 
-					style="cursor:pointer;" 
-					onclick="
-						var listobject = document.getElementById('ara_ca_mo' + {$years[$x]->year});
-						var sign = document.getElementById('ara_ca_mosign' + {$years[$x]->year});
-						if(listobject.style.display == 'block')
-						{
-							listobject.style.display = 'none';
-							collapsiblearchive_togglesign(sign, true);
-						}
-						else
-						{
-							listobject.style.display = 'block';
-							collapsiblearchive_togglesign(sign, false); 
-						}">
-						<span id="ara_ca_mosign{$years[$x]->year}">
-							$icon
-						</span>
-					</a>
-					<a href="$year_link">{$years[$x]->year}</a>	
+				<a style="cursor:pointer;" onclick="collapsiblearchive_toggle('ara_ca_mo{$years[$x]->year}','ara_ca_mosign{$years[$x]->year}')">
 EOB;
 		}
+		$string_to_echo .= "<span id=\"ara_ca_mosign{$years[$x]->year}\">$icon</span></a><a href=\"$year_link\">{$years[$x]->year}</a>";
 		if($count > 0) $string_to_echo .= '&nbsp;('.$years[$x]->posts.')';
 		$string_to_echo .= $childOpen.' id="ara_ca_mo'.$years[$x]->year.'" style="display:'.(($defaultexpand || ($expandcurryear && date("Y") == $years[$x]->year)) ? 'block' : 'none').'">';
 		$string_to_echo .= ara_collapsiblearchive_get_archivesbymonth($years[$x]->year,$count,$lineStart.$preappend,$lineEnd,$abbr);
@@ -177,6 +170,7 @@ function ara_collapsiblearchive_get_archivesbymonth($year, $count, $before, $aft
 	$expandcurrmonth = $options['expandcurrmonth'] ? 1 : 0;
 	$show_individual_posts = $options['showposts'] ? 1 : 0;
 	$count = $options['count'] ? 1 : 0;
+	$htmlarrows = $options['htmlarrows'] ? 1 : 0;
 
 	$monthresults = $wpdb->get_results("SELECT DISTINCT YEAR(post_date) AS `year`, MONTH(post_date) AS `month`, count(ID) as posts"
 		. " FROM $wpdb->posts"
@@ -192,36 +186,21 @@ function ara_collapsiblearchive_get_archivesbymonth($year, $count, $before, $aft
 		$url = get_month_link($year, $month->month);
 		if($show_individual_posts > 0)
 		{
+			$icon = ($defaultexpand || ($expandcurrmonth && date("Y") == $year && date("n") == $month->month)) ? $ara_collapsible_icons['minus'][$htmlarrows] : $ara_collapsible_icons['plus'][$htmlarrows];
 			if($scriptaculous > 0)
 			{
 				$add_before = '<script type="text/javascript">var visible_'.$year.$month->month.' = '.(($defaultexpand || ($expandcurrmonth && date("Y") == $year && date("n") == $month->month)) ? 'true' : 'false').'</script>';
-				$add_before .= '<a style="cursor:pointer;" onclick="visible_'.$year.$month->month.' = collapsiblearchive_toggle_month(\''.$year.$month->month.'\',visible_'.$year.$month->month.')"><span id="ara_ca_posign'.$year.$month->month.'">'.(($defaultexpand || ($expandcurrmonth && date("Y") == $year && date("n") == $month->month)) ? $ara_collapsible_icons['minus'] : $ara_collapsible_icons['plus']).'</span></a> ';
+				$add_before .= <<<EOB
+					<a style="cursor:pointer;" onclick="visible_$year{$month->month} = collapsiblearchive_toggle('ara_ca_po$year{$month->month}',visible_$year{$month->month},'ara_ca_posign$year{$month->month}')">
+EOB;
 			}
 			else
 			{
-				#$add_before = '<a style="cursor:pointer;" onclick="var listobject = document.getElementById(\'ara_ca_po'.$year.$month->month.'\'); var sign = document.getElementById(\'ara_ca_posign\' + '.$year.$month->month.'); if(listobject.style.display == \'block\') { listobject.style.display = \'none\'; collapsiblearchive_togglesign(sign, false); } else { listobject.style.display = \'block\'; collapsiblearchive_togglesign(sign, true); }"><span id="ara_ca_posign'.$year.$month->month.'">'.(($defaultexpand || ($expandcurrmonth && date("Y") == $year && date("n") == $month->month)) ? $ara_collapsible_icons['minus'] : $ara_collapsible_icons['plus']).'</span></a> ';
-				$icon = ($defaultexpand || ($expandcurrmonth && date("Y") == $year && date("n") == $month->month)) ? $ara_collapsible_icons['minus'] : $ara_collapsible_icons['plus'];
 				$add_before = <<<EOB
-					<a
-						style="cursor:pointer;"
-						onclick="
-							var listobject = document.getElementById('ara_ca_po$year{$month->month}');
-							var sign = document.getElementById('ara_ca_posign' + '$year{$month->month}');
-							if(listobject.style.display == 'block')
-							{
-								listobject.style.display = 'none';
-								collapsiblearchive_togglesign(sign, true);
-							}
-							else
-							{
-								listobject.style.display = 'block';
-								collapsiblearchive_togglesign(sign, false);
-							}
-					">
-						<span id="ara_ca_posign$year{$month->month}">$icon</span>
-					</a>
+					<a style="cursor:pointer;" onclick="collapsiblearchive_toggle('ara_ca_po$year{$month->month}','ara_ca_posign$year{$month->month}')">
 EOB;
 			}
+			$add_before .= "<span id=\"ara_ca_posign$year{$month->month}\">$icon</span></a>";			
 		}
 		else $add_before = '';
 		$text = sprintf(__('%1$s %2$d'), ($abbr > 0 ? $wp_locale->get_month_abbrev($wp_locale->get_month($month->month)) : $wp_locale->get_month($month->month)), $year);
@@ -231,7 +210,7 @@ EOB;
 
 		if($show_individual_posts)
 		{
-			$result_string .= ara_get_postsbymonth($year, $month->month, '', '');
+			$result_string .= ara_collapsiblearchive_get_postsbymonth($year, $month->month, '', '');
 			$result_string .= $after;
 		}
 	}
@@ -239,7 +218,7 @@ EOB;
 	return $result_string;
 }
 
-function ara_get_postsbymonth($year, $month, $before, $after)
+function ara_collapsiblearchive_get_postsbymonth($year, $month, $before, $after)
 {
 	global $wpdb;
 	$options = (array) get_option('widget_ara_collapsiblearchive');
@@ -304,6 +283,7 @@ function widget_ara_collapsiblearchive_control() {
 		$newoptions['expandcurryear'] = $_POST['collapsiblearchive-expandcurryear'];
 		$newoptions['expandcurrmonth'] = $_POST['collapsiblearchive-expandcurrmonth'];
 		$newoptions['linktoplugin'] = $_POST['collapsiblearchive-linktoplugin'];
+		$newoptions['htmlarrows'] = $_POST['collapsiblearchive-htmlarrows'];		
 	}
 	if ( $options != $newoptions ) {
 		$options = $newoptions;
@@ -317,6 +297,7 @@ function widget_ara_collapsiblearchive_control() {
 	$expandcurrmonth = $options['expandcurrmonth'] ? 'checked="checked"' : '';
 	$scriptaculous = $options['scriptaculous'] ? 'checked="checked"' : '';
 	$linktoplugin = $options['linktoplugin'] ? 'checked="checked"' : '';
+	$htmlarrows = $options['htmlarrows'] ? 'checked="checked"' : '';
 ?>
 			<div>
 			<p>
@@ -392,6 +373,12 @@ function widget_ara_collapsiblearchive_control() {
 					<input class="checkbox" type="checkbox" <?php echo $showposts; ?> id="collapsiblearchive-showposts" name="collapsiblearchive-showposts" />
 					<?php _e('Show individual posts (<a target="_blank" href="http://www.romantika.name/v2/wordpress-plugin-collapsible-archive-widget/#showpostswarning">Warning</a>)'); ?>
 				</label>
+			</p>
+			<p>
+				<label for="collapsiblearchive-htmlarrows">
+					<input class="checkbox" type="checkbox" <?php echo $htmlarrows; ?> id="collapsiblearchive-htmlarrows" name="collapsiblearchive-htmlarrows" />
+					<?php _e('Use HTML arrows instead of images'); ?> (&#9658; &#9660;)
+				</label>
 			</p>	
 			<p>
 				<label for="collapsiblearchive-linktoplugin">
@@ -428,8 +415,11 @@ function widget_ara_collapsiblearchive_init() {
 	
 	global $ara_collapsible_icons;
 	
-	$ara_collapsible_icons['plus'] = '<img src="'.WP_PLUGIN_URL.'/'.plugin_basename(dirname(__FILE__)).'/plus.png" alt="" />';
-	$ara_collapsible_icons['minus'] = '<img src="'.WP_PLUGIN_URL.'/'.plugin_basename(dirname(__FILE__)).'/minus.png" alt="" />';
+	$ara_collapsible_icons['plus'][0] = '<img src="'.WP_PLUGIN_URL.'/'.plugin_basename(dirname(__FILE__)).'/plus.png" alt="" />';
+	$ara_collapsible_icons['minus'][0] = '<img src="'.WP_PLUGIN_URL.'/'.plugin_basename(dirname(__FILE__)).'/minus.png" alt="" />';
+	
+	$ara_collapsible_icons['plus'][1] = '&#9658;';
+	$ara_collapsible_icons['minus'][1] = '&#9660;';
 
 	// Check for the required API functions
 	if ( !function_exists('register_sidebar_widget') || !function_exists('register_widget_control') )
