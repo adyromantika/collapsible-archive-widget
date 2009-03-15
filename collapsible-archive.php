@@ -3,13 +3,13 @@
 Plugin Name: Collapsible Archive Widget
 Plugin URI: http://www.romantika.name/v2/wordpress-plugin-collapsible-archive-widget/
 Description: Display Collapsible Archive in yous sidebar to save space.
-Version: 2.2.1.1
+Version: 2.3
 Author: Ady Romantika
 Author URI: http://www.romantika.name/v2/
 */
 
 /*
-	Copyright 2007-2008  ADY ROMANTIKA  (ady AT romantika DOT name)
+	Copyright 2007-2009  ADY ROMANTIKA  (ady AT romantika DOT name)
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,6 +32,7 @@ function ara_collapsiblearchive($before,$after)
 	$options = (array) get_option('widget_ara_collapsiblearchive');
 	$title = $options['title'];
 	$count = $options['count'] ? 1 : 0;
+	$mcount = $options['mcount'] ? 1 : 0;
 	$abbr = $options['abbr'] ? 1 : 0;
 	$scriptaculous = $options['scriptaculous'] ? 1 : 0;
 	$effectexpand = $options['effectexpand'] ? $options['effectexpand'] : 1;
@@ -44,7 +45,7 @@ function ara_collapsiblearchive($before,$after)
 	$years	= ara_collapsiblearchive_get_archivesbyyear();
 
 	# Header
-	$string_to_echo  =  ($before.$title.$after."\n");
+	$string_to_echo  =  ($before.__($title).$after."\n");
 	?>
 	<script type="text/javascript">
 	//<!--
@@ -97,7 +98,7 @@ function ara_collapsiblearchive($before,$after)
 		<?php
 	}
 	else
-	{	
+	{
 	?>
 
 		collapsiblearchive_toggle = function(listelement, listsign)
@@ -112,13 +113,12 @@ function ara_collapsiblearchive($before,$after)
 			else
 			{
 				listobject.style.display = 'block';
-				collapsiblearchive_togglesign(sign, false); 
+				collapsiblearchive_togglesign(sign, false);
 			}
 		}
 	<?php
 	}
 	?>
-
 		collapsiblearchive_togglesign = function(element,visibility)
 		{
 			(visibility == false ? element.innerHTML = '<?php print $ara_collapsible_icons['minus'][$htmlarrows] ?>' : element.innerHTML = '<?php print $ara_collapsible_icons['plus'][$htmlarrows] ?>');
@@ -170,7 +170,10 @@ function ara_collapsiblearchive_get_archivesbymonth($year, $count, $before, $aft
 	$expandcurrmonth = $options['expandcurrmonth'] ? 1 : 0;
 	$show_individual_posts = $options['showposts'] ? 1 : 0;
 	$count = $options['count'] ? 1 : 0;
+	$mcount = $options['mcount'] ? 1 : 0;
 	$htmlarrows = $options['htmlarrows'] ? 1 : 0;
+	$highlightcurrmonth = $options['highlightcurrmonth'] ? 1 : 0;
+	$monthhideyear = $options['monthhideyear'] ? 1 : 0;
 
 	$monthresults = $wpdb->get_results("SELECT DISTINCT YEAR(post_date) AS `year`, MONTH(post_date) AS `month`, count(ID) as posts"
 		. " FROM $wpdb->posts"
@@ -200,13 +203,17 @@ EOB;
 					<a style="cursor:pointer;" onclick="collapsiblearchive_toggle('ara_ca_po$year{$month->month}','ara_ca_posign$year{$month->month}')">
 EOB;
 			}
-			$add_before .= "<span id=\"ara_ca_posign$year{$month->month}\">$icon</span></a>";			
+			$add_before .= "<span id=\"ara_ca_posign$year{$month->month}\">$icon</span></a>";
 		}
 		else $add_before = '';
-		$text = sprintf(__('%1$s %2$d'), ($abbr > 0 ? $wp_locale->get_month_abbrev($wp_locale->get_month($month->month)) : $wp_locale->get_month($month->month)), $year);
-		if ($count > 0)	$aftertext = '&nbsp;('.$month->posts.')' . $after;
+		$monthname = ($abbr > 0 ? $wp_locale->get_month_abbrev($wp_locale->get_month($month->month)) : $wp_locale->get_month($month->month));
+		if($monthhideyear > 0)
+			$text = ($highlightcurrmonth > 0 ? '<strong>' : '') . sprintf(__('%1$s'), $monthname) . ($highlightcurrmonth > 0 ? '</strong>' : '');
+		else
+			$text = ($highlightcurrmonth > 0 ? '<strong>' : '') . sprintf(__('%1$s %2$d'), $monthname, $year) . ($highlightcurrmonth > 0 ? '</strong>' : '');
+		if ($mcount > 0) $aftertext = '&nbsp;('.$month->posts.')' . $after;
 		else $aftertext = $after;
-		$result_string .= get_archives_link($url, $text, 'custom', $before.$add_before, ($show_individual_posts ? '' : $aftertext));
+		$result_string .= get_archives_link($url, $text, 'custom', $before.$add_before, $aftertext);
 
 		if($show_individual_posts)
 		{
@@ -274,6 +281,7 @@ function widget_ara_collapsiblearchive_control() {
 	if ( $_POST['collapsiblearchive-submit'] ) {
 		$newoptions['title'] = strip_tags(stripslashes($_POST['collapsiblearchive-title']));
 		$newoptions['count'] = isset($_POST['collapsiblearchive-count']);
+		$newoptions['mcount'] = isset($_POST['collapsiblearchive-mcount']);
 		$newoptions['abbr'] = isset($_POST['collapsiblearchive-monthabbr']);
 		$newoptions['scriptaculous'] = isset($_POST['collapsiblearchive-scriptaculous']);
 		$newoptions['effectexpand'] = $_POST['collapsiblearchive-effectexpand'];
@@ -283,13 +291,16 @@ function widget_ara_collapsiblearchive_control() {
 		$newoptions['expandcurryear'] = $_POST['collapsiblearchive-expandcurryear'];
 		$newoptions['expandcurrmonth'] = $_POST['collapsiblearchive-expandcurrmonth'];
 		$newoptions['linktoplugin'] = $_POST['collapsiblearchive-linktoplugin'];
-		$newoptions['htmlarrows'] = $_POST['collapsiblearchive-htmlarrows'];		
+		$newoptions['htmlarrows'] = $_POST['collapsiblearchive-htmlarrows'];
+		$newoptions['highlightcurrmonth'] = $_POST['collapsiblearchive-highlightcurrmonth'];
+		$newoptions['monthhideyear'] = $_POST['collapsiblearchive-monthhideyear'];
 	}
 	if ( $options != $newoptions ) {
 		$options = $newoptions;
 		update_option('widget_ara_collapsiblearchive', $options);
 	}
 	$count = $options['count'] ? 'checked="checked"' : '';
+	$mcount = $options['mcount'] ? 'checked="checked"' : '';
 	$abbr = $options['abbr'] ? 'checked="checked"' : '';
 	$showposts = $options['showposts'] ? 'checked="checked"' : '';
 	$defaultexpand = $options['defaultexpand'] ? 'checked="checked"' : '';
@@ -298,6 +309,8 @@ function widget_ara_collapsiblearchive_control() {
 	$scriptaculous = $options['scriptaculous'] ? 'checked="checked"' : '';
 	$linktoplugin = $options['linktoplugin'] ? 'checked="checked"' : '';
 	$htmlarrows = $options['htmlarrows'] ? 'checked="checked"' : '';
+	$highlightcurrmonth = $options['highlightcurrmonth'] ? 'checked="checked"' : '';
+	$monthhideyear = $options['monthhideyear'] ? 'checked="checked"' : '';
 ?>
 			<div>
 			<p>
@@ -308,13 +321,25 @@ function widget_ara_collapsiblearchive_control() {
 			<p>
 				<label for="collapsiblearchive-count">
 					<input class="checkbox" type="checkbox" <?php echo $count; ?> id="collapsiblearchive-count" name="collapsiblearchive-count" />
-					<?php _e('Show post counts'); ?>
+					<?php _e('Show post counts for year'); ?>
+				</label>
+			</p>
+			<p>
+				<label for="collapsiblearchive-mcount">
+					<input class="checkbox" type="checkbox" <?php echo $mcount; ?> id="collapsiblearchive-mcount" name="collapsiblearchive-mcount" />
+					<?php _e('Show post counts for month'); ?>
 				</label>
 			</p>
 			<p>
 				<label for="collapsiblearchive-monthabbr">
 					<input class="checkbox" type="checkbox" <?php echo $abbr; ?> id="collapsiblearchive-monthabbr" name="collapsiblearchive-monthabbr" />
 					<?php _e('Abbreviate month names'); ?>
+				</label>
+			</p>
+			<p>
+				<label for="collapsiblearchive-monthhideyear">
+					<input class="checkbox" type="checkbox" <?php echo $monthhideyear; ?> id="collapsiblearchive-monthhideyear" name="collapsiblearchive-monthhideyear" />
+					<?php _e('Hide year from month names'); ?>
 				</label>
 			</p>
 			<p>
@@ -379,13 +404,19 @@ function widget_ara_collapsiblearchive_control() {
 					<input class="checkbox" type="checkbox" <?php echo $htmlarrows; ?> id="collapsiblearchive-htmlarrows" name="collapsiblearchive-htmlarrows" />
 					<?php _e('Use HTML arrows instead of images'); ?> (&#9658; &#9660;)
 				</label>
-			</p>	
+			</p>
 			<p>
 				<label for="collapsiblearchive-linktoplugin">
 					<input class="checkbox" type="checkbox" <?php echo $linktoplugin; ?> id="collapsiblearchive-linktoplugin" name="collapsiblearchive-linktoplugin" />
 					<?php _e('Show a link to plugin page. Thank you for your support!'); ?>
 				</label>
-			</p>			
+			</p>
+			<p>
+				<label for="collapsiblearchive-highlightcurrmonth">
+					<input class="checkbox" type="checkbox" <?php echo $highlightcurrmonth; ?> id="collapsiblearchive-highlightcurrmonth" name="collapsiblearchive-highlightcurrmonth" />
+					<?php _e('Show current month in bold'); ?>
+				</label>
+			</p>
 			<input type="hidden" name="collapsiblearchive-submit" id="collapsiblearchive-submit" value="1" />
 			</div>
 <?php
@@ -412,14 +443,14 @@ function ara_collapsiblearchive_microtime_float()
 }
 
 function widget_ara_collapsiblearchive_init() {
-	
+
 	global $ara_collapsible_icons;
-	
+
 	$ara_collapsible_icons['plus'][0] = '<img src="'.WP_PLUGIN_URL.'/'.plugin_basename(dirname(__FILE__)).'/plus.png" alt="" />';
 	$ara_collapsible_icons['minus'][0] = '<img src="'.WP_PLUGIN_URL.'/'.plugin_basename(dirname(__FILE__)).'/minus.png" alt="" />';
-	
-	$ara_collapsible_icons['plus'][1] = '&#9658;';
-	$ara_collapsible_icons['minus'][1] = '&#9660;';
+
+	$ara_collapsible_icons['plus'][1] = '&#9658;&nbsp;';
+	$ara_collapsible_icons['minus'][1] = '&#9660;&nbsp;';
 
 	// Check for the required API functions
 	if ( !function_exists('register_sidebar_widget') || !function_exists('register_widget_control') )
@@ -436,7 +467,7 @@ function widget_ara_collapsiblearchive_init() {
 		echo ara_collapsiblearchive($before_title, $after_title);
 		if($linktoplugin)
 		{
-			print "\n\t".'<div style="text-align:center; padding-top: 5px; "><em><a title="Powered by Collapsible Archive Widget" href="http://www.romantika.name/v2/wordpress-plugin-collapsible-archive-widget/">Collapsible Archive Widget</a></em></div>';
+			print "\n\t".'<div style="text-align:center; padding-top: 5px; "><em><a title="Powered by Collapsible Archive Widget" href="http://www.romantika.name/v2/wordpress-plugin-collapsible-archive-widget/">Collapsible Archive</a></em></div>';
 		}
 		echo $after_widget;
 		echo "\n\t".'<!-- Collapsible Archive Widget ends here -->';
