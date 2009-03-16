@@ -4,7 +4,7 @@ Donate link: http://www.romantika.name/v2/
 Tags: collapse, collapsible, archive, collapsible archive, widget
 Requires at least: 2.1
 Tested up to: 2.7.1
-Stable tag: 2.3
+Stable tag: 2.3.1
 
 This simple plugin is a widget that displays a collapsible archives list in your widgetized sidebar by utilizing JavaScript.
 
@@ -23,7 +23,6 @@ This simple plugin is a widget that displays a collapsible archives list in your
 == Configuration ==
 
 * Widget title: the title of the widget
-* List type: ul for bulleted list, p for paragraph, br for paragraph with line breaks
 * Show post counts for year: Whether or not to show the post number for each year
 * Show post counts for month: Whether or not to show the post number for each month
 * Abbreviate month names: Check this box to show abbreviation of month names
@@ -44,6 +43,10 @@ This simple plugin is a widget that displays a collapsible archives list in your
 * Add ability for multiple instances
 * Add ability to work as non-widget
 * Add ability to include / exclude categories
+* Expand previous month rather the current
+* Research the practicality to use CSS / allow CSS options
+* List posts without year and month headers (for blogs with few posts)
+* Do not list the posts that are listed on the main page
 
 == Change Log ==
 
@@ -55,3 +58,4 @@ This simple plugin is a widget that displays a collapsible archives list in your
 * 25-Aug-2008: Bugfix to not load javascripts when effects is not used 
 * 25-Aug-2008: Code factoring and added ability to use HTML arrows
 * 16-Mar-2009: Separated year and month posts counts, added option to hide year after month names, ability to show current month in bold, enabled localized title
+* 17-Mar-2009: Fixed valid XHTML, and highlight (bold) bugfix

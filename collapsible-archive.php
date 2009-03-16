@@ -3,7 +3,7 @@
 Plugin Name: Collapsible Archive Widget
 Plugin URI: http://www.romantika.name/v2/wordpress-plugin-collapsible-archive-widget/
 Description: Display Collapsible Archive in yous sidebar to save space.
-Version: 2.3
+Version: 2.3.1
 Author: Ady Romantika
 Author URI: http://www.romantika.name/v2/
 */
@@ -208,9 +208,9 @@ EOB;
 		else $add_before = '';
 		$monthname = ($abbr > 0 ? $wp_locale->get_month_abbrev($wp_locale->get_month($month->month)) : $wp_locale->get_month($month->month));
 		if($monthhideyear > 0)
-			$text = ($highlightcurrmonth > 0 ? '<strong>' : '') . sprintf(__('%1$s'), $monthname) . ($highlightcurrmonth > 0 ? '</strong>' : '');
+			$text = ($highlightcurrmonth > 0 && date("nY") == $month->month.$year ? '<strong>' : '') . sprintf(__('%1$s'), $monthname) . ($highlightcurrmonth > 0 && date("nY") == $month->month.$year ? '</strong>' : '');
 		else
-			$text = ($highlightcurrmonth > 0 ? '<strong>' : '') . sprintf(__('%1$s %2$d'), $monthname, $year) . ($highlightcurrmonth > 0 ? '</strong>' : '');
+			$text = ($highlightcurrmonth > 0 && date("nY") == $month->month.$year ? '<strong>'.$month->month : '') . sprintf(__('%1$s %2$d'), $monthname, $year) . ($highlightcurrmonth > 0 && date("nY") == $month->month.$year ? '</strong>' : '');
 		if ($mcount > 0) $aftertext = '&nbsp;('.$month->posts.')' . $after;
 		else $aftertext = $after;
 		$result_string .= get_archives_link($url, $text, 'custom', $before.$add_before, $aftertext);
@@ -252,7 +252,7 @@ function ara_collapsiblearchive_get_postsbymonth($year, $month, $before, $after)
 	{
 		if($sectionstart)
 		{
-			$result_string .= $childOpen.' id="ara_ca_po'.$year.$month.'" style="display:'.(($defaultexpand || ($expandcurrmonth && date("Y") == $year && date("n") == $month)) ? 'block' : 'none').'">';
+			$result_string .= $lineStart.$childOpen.' id="ara_ca_po'.$year.$month.'" style="display:'.(($defaultexpand || ($expandcurrmonth && date("Yn") == $year.$month)) ? 'block' : 'none').'">';
 			$sectionstart = false;
 		}
 		$url  = get_permalink($post->ID);
@@ -446,8 +446,8 @@ function widget_ara_collapsiblearchive_init() {
 
 	global $ara_collapsible_icons;
 
-	$ara_collapsible_icons['plus'][0] = '<img src="'.WP_PLUGIN_URL.'/'.plugin_basename(dirname(__FILE__)).'/plus.png" alt="" />';
-	$ara_collapsible_icons['minus'][0] = '<img src="'.WP_PLUGIN_URL.'/'.plugin_basename(dirname(__FILE__)).'/minus.png" alt="" />';
+	$ara_collapsible_icons['plus'][0] = '<img src="'.WP_PLUGIN_URL.'/'.plugin_basename(dirname(__FILE__)).'/plus.png" alt="" />&nbsp;';
+	$ara_collapsible_icons['minus'][0] = '<img src="'.WP_PLUGIN_URL.'/'.plugin_basename(dirname(__FILE__)).'/minus.png" alt="" />&nbsp;';
 
 	$ara_collapsible_icons['plus'][1] = '&#9658;&nbsp;';
 	$ara_collapsible_icons['minus'][1] = '&#9660;&nbsp;';
